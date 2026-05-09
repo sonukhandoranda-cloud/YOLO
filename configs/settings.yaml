@@ -1,0 +1,17 @@
+database_path: data/attendance/attendance.sqlite3
+
+face:
+  camera_index: 0
+  match_threshold: 0.72
+  min_face_size: 80
+  vote_window: 8
+  vote_required: 5
+
+footwear:
+  camera_index: 1
+  model_path: models/footwear/shoe_detect_best.pt
+  confidence_threshold: 0.50
+
+attendance:
+  duplicate_cooldown_minutes: 30
+  session_name: default

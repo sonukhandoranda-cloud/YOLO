@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+data/attendance/*.sqlite3
+data/attendance/*.sqlite3-*
+data/raw/enrollment/
+runs/
+
+tmp_test.pt
