@@ -64,6 +64,8 @@ class StudentMatch:
     branch: str
     batch: str
     score: float
+    second_score: float | None = None
+    margin: float | None = None
 
 
 def connect(db_path: str | Path) -> sqlite3.Connection:

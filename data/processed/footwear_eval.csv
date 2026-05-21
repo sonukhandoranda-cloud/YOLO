@@ -1,0 +1,16 @@
+image,read_ok,detections,best_confidence,labels
+data\raw\footwear_samples\500px-2015_K_odzko__ul._Dusznicka__myjnia_samochodowa_02.jpg,True,0,0.0,
+data\raw\footwear_samples\500px-2023_Adidas_Yeezy_350_V2_EF2905__1_.jpg,True,3,0.8497,shoe
+data\raw\footwear_samples\500px-Cobbler_repairing_shoes_in_old_workshop__Bazaar_in_Bitola__Macedonia__2025_.jpg,True,1,0.7051,shoe
+data\raw\footwear_samples\500px-FILA_FLOAT_MAXXI_and_FILA_AXILUS_ACE_in_Brazil.jpg,True,3,0.8465,shoe
+data\raw\footwear_samples\500px-Foot_binding_shoes_1.jpg,True,2,0.8943,shoe
+data\raw\footwear_samples\500px-Gro__und_klein_002_2022_07_14.jpg,True,4,0.8971,shoe
+data\raw\footwear_samples\500px-Reebok_Royal_Glide_Ripple_Clip_shoe.jpg,True,1,0.9002,shoe
+data\raw\footwear_samples\500px-Sandal__leather_-_Museo_Egizio__Turin_S_8638_p01.jpg,True,2,0.867,shoe
+data\raw\footwear_samples\500px-Slippers__drawing_.jpg,True,2,0.8413,shoe
+data\raw\footwear_samples\500px-Une_Restauration_by_Edouard_Dantan.jpg,True,0,0.0,
+data\raw\footwear_samples\960px-Avia_Shoes.jpg,True,1,0.8883,shoe
+data\raw\footwear_samples\960px-Foot_binding_shoes_1.jpg,True,2,0.9022,shoe
+data\raw\footwear_samples\960px-PalmercarpenterA.jpg,True,0,0.0,
+data\raw\footwear_samples\Fallen_Footwear_Shoes.jpg,True,2,0.8837,shoe
+data\raw\footwear_samples\Foot_binding_shoes_1.jpg,True,2,0.9112,shoe

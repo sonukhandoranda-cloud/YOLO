@@ -2,7 +2,8 @@ database_path: data/attendance/attendance.sqlite3
 
 face:
   camera_index: 0
-  match_threshold: 0.72
+  match_threshold: 0.42
+  min_margin: 0.03
   min_face_size: 80
   vote_window: 8
   vote_required: 5

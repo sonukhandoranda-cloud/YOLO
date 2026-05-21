@@ -442,6 +442,38 @@ Show saved attendance:
 python -m src.app.show_attendance
 ```
 
+Show database status:
+
+```bash
+python -m src.app.project_status
+```
+
+Run 1500-student simulation:
+
+```bash
+python scripts/simulate_1500_students.py
+```
+
+Run formal 1500+ scale readiness validation:
+
+```bash
+python scripts/validate_scale_readiness.py --students 1500
+```
+
+Run public 1500-identity face benchmark:
+
+```bash
+python scripts/evaluate_public_face_benchmark.py --enrolled 1500 --unknown 100 --threshold 0.42 --min-margin 0.03
+```
+
+The live face runners use an in-memory face index for fast matching after startup. SQLite remains the source of truth, but video-frame matching does not repeatedly parse the database.
+
+Evaluate footwear model on sample images:
+
+```bash
+python scripts/evaluate_footwear_images.py --images data/raw/footwear_samples --model models/footwear/shoe_detect_best.pt --conf 0.50
+```
+
 Test footwear detection:
 
 ```bash

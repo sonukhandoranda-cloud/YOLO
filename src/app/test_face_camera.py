@@ -12,7 +12,7 @@ from src.database.db import (
     recently_marked,
 )
 from src.face.engine import create_face_embedder
-from src.face.matcher import find_best_match
+from src.face.index import FaceIndex
 from src.fusion.decision import IdentityVoteWindow
 
 
@@ -20,7 +20,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Test face detection and recognition with one PC camera.")
     parser.add_argument("--db", default="data/attendance/attendance.sqlite3")
     parser.add_argument("--camera", type=int, default=0)
-    parser.add_argument("--threshold", type=float, default=0.72)
+    parser.add_argument("--threshold", type=float, default=0.42)
+    parser.add_argument("--min-margin", type=float, default=0.03)
     parser.add_argument("--session", default="face-demo")
     parser.add_argument("--cooldown-minutes", type=int, default=30)
     parser.add_argument("--vote-window", type=int, default=8)
@@ -40,13 +41,16 @@ def main() -> None:
     try:
         session_id = get_or_create_session(conn, args.session)
         conn.commit()
+        face_index = FaceIndex.load(conn)
+        if not face_index.students:
+            print("No enrolled students found. Enroll a student first.")
         while True:
             ok, frame = cap.read()
             if not ok:
                 break
 
             face = embedder.detect_largest(frame)
-            match = find_best_match(conn, face.embedding, args.threshold) if face else None
+            match = face_index.find_best(face.embedding, args.threshold, args.min_margin) if face else None
             stable = votes.add(match.student_id if match else None)
 
             if face:

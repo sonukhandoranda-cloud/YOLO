@@ -1,0 +1,66 @@
+# Footwear Model Evaluation
+
+## Purpose
+
+This evaluation checks whether the provided YOLO footwear model can detect shoes/footwear on sample images before we move toward Raspberry Pi deployment.
+
+## Current Model
+
+```text
+models/footwear/shoe_detect_best.pt
+```
+
+Loaded classes:
+
+```text
+0: no object
+1: shoe
+```
+
+## Sample Data
+
+Images were downloaded from Wikimedia Commons into:
+
+```text
+data/raw/footwear_samples
+```
+
+The sample contains shoes, sneakers, sandals, slippers/drawings, and a few difficult/non-ideal images.
+
+## Command Used
+
+```bash
+python scripts/evaluate_footwear_images.py --images data/raw/footwear_samples --model models/footwear/shoe_detect_best.pt --conf 0.50
+```
+
+## Result
+
+```text
+Images read: 15/15
+Images with detections: 12/15
+Detection rate: 80.00%
+```
+
+Output files:
+
+```text
+data/processed/footwear_eval.csv
+data/processed/footwear_eval/
+```
+
+## Observation
+
+The model detects many normal shoe/sneaker/sandal images with high confidence, often around 0.84 to 0.91.
+
+It fails on some difficult images, including scenes where footwear is not clear, the subject is not actually footwear-focused, or the image is an artwork/indirect scene.
+
+## Conclusion
+
+The current shoe model is useful for a prototype. It is not enough to claim production accuracy yet.
+
+Before Raspberry Pi deployment, the next footwear step should be:
+
+1. collect 50 to 100 phone images from the expected low camera angle,
+2. include sneakers, sandals, slippers, formal shoes, and partial occlusion,
+3. run this same evaluation script,
+4. decide whether to fine-tune YOLO on a custom Roboflow dataset.
