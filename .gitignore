@@ -7,6 +7,13 @@ venv/
 data/attendance/*.sqlite3
 data/attendance/*.sqlite3-*
 data/raw/enrollment/
+testAdnan/
+private*/
+data/private/
+data/processed/private_face_validation*.csv
+data/processed/public_face_benchmark_latest*.csv
+data/processed/public_face_benchmark_smoke*.csv
+data/processed/attendance_exports/
 runs/
 
 tmp_test.pt

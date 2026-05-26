@@ -442,6 +442,12 @@ Show saved attendance:
 python -m src.app.show_attendance
 ```
 
+Export daily attendance to Excel:
+
+```bash
+python -m src.app.export_attendance_excel --date YYYY-MM-DD
+```
+
 Show database status:
 
 ```bash
@@ -463,7 +469,7 @@ python scripts/validate_scale_readiness.py --students 1500
 Run public 1500-identity face benchmark:
 
 ```bash
-python scripts/evaluate_public_face_benchmark.py --enrolled 1500 --unknown 100 --threshold 0.42 --min-margin 0.03
+python scripts/evaluate_public_face_benchmark.py --enrolled 1500 --unknown 100 --threshold 0.41 --min-margin 0.04
 ```
 
 The live face runners use an in-memory face index for fast matching after startup. SQLite remains the source of truth, but video-frame matching does not repeatedly parse the database.
