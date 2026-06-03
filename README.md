@@ -448,6 +448,12 @@ Export daily attendance to Excel:
 python -m src.app.export_attendance_excel --date YYYY-MM-DD
 ```
 
+Email daily attendance report:
+
+```bash
+python -m src.app.send_daily_attendance_email --date YYYY-MM-DD
+```
+
 Show database status:
 
 ```bash
@@ -493,6 +499,14 @@ python -m src.app.run_attendance --face-camera 0 --footwear-camera 1
 ```
 
 If only one camera is connected, test enrollment and footwear detection separately first.
+
+Current footwear attendance policy:
+
+```text
+face + shoe -> present
+face + sandal -> present_with_flag
+face + anything else -> absent
+```
 
 ## References
 

@@ -10,6 +10,11 @@ from src.face.engine import create_face_embedder
 from src.face.index import FaceIndex
 from src.footwear.detector import FootwearDetector, draw_detections
 from src.fusion.decision import IdentityVoteWindow
+from src.fusion.footwear_policy import FootwearPolicy
+
+
+def parse_labels(value: str) -> set[str]:
+    return {item.strip().lower() for item in value.split(",") if item.strip()}
 
 
 def main() -> None:
@@ -21,6 +26,8 @@ def main() -> None:
     parser.add_argument("--face-threshold", type=float, default=0.41)
     parser.add_argument("--face-min-margin", type=float, default=0.04)
     parser.add_argument("--presence-threshold", type=float, default=0.50)
+    parser.add_argument("--allowed-footwear", default="shoe,footwear")
+    parser.add_argument("--flagged-footwear", default="sandal")
     parser.add_argument("--session", default="default")
     parser.add_argument("--cooldown-minutes", type=int, default=30)
     parser.add_argument("--vote-window", type=int, default=8)
@@ -30,6 +37,10 @@ def main() -> None:
     init_db(args.db)
     face_engine = create_face_embedder()
     footwear_detector = FootwearDetector(args.shoe_model, args.presence_threshold)
+    footwear_policy = FootwearPolicy(
+        allowed_labels=parse_labels(args.allowed_footwear),
+        flagged_labels=parse_labels(args.flagged_footwear),
+    )
     votes = IdentityVoteWindow(args.vote_window, args.vote_required)
 
     face_cap = cv2.VideoCapture(args.face_camera)
@@ -59,21 +70,26 @@ def main() -> None:
             stable = votes.add(match.student_id if match else None)
 
             detections = footwear_detector.detect(shoe_frame)
-            presence_score = max((d.confidence for d in detections), default=0.0)
-            presence_ok = presence_score >= args.presence_threshold
+            footwear_decision = footwear_policy.decide(detections)
 
-            if stable and match and stable.student_id == match.student_id and presence_ok:
+            if stable and match and stable.student_id == match.student_id and footwear_decision.can_mark_attendance:
                 if not recently_marked(conn, student_id=match.student_id, cooldown_minutes=args.cooldown_minutes):
                     inserted = mark_attendance(
                         conn,
                         student_id=match.student_id,
                         session_id=session_id,
                         face_score=match.score,
-                        presence_score=presence_score,
+                        presence_score=footwear_decision.confidence,
+                        presence_label=footwear_decision.label,
+                        decision_status=footwear_decision.status,
                     )
                     conn.commit()
                     if inserted:
-                        print(f"Marked present: {match.roll_no} {match.name} face={match.score:.2f} presence={presence_score:.2f}")
+                        print(
+                            f"Marked {footwear_decision.status}: {match.roll_no} {match.name} "
+                            f"face={match.score:.2f} footwear={footwear_decision.label} "
+                            f"presence={footwear_decision.confidence:.2f}"
+                        )
 
             if face:
                 x, y, w, h = face.bbox
@@ -84,6 +100,15 @@ def main() -> None:
                 cv2.putText(face_frame, "No confident face match", (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
             shoe_view = draw_detections(shoe_frame, detections)
+            cv2.putText(
+                shoe_view,
+                footwear_decision.message,
+                (20, 30),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.7,
+                (0, 220, 0) if footwear_decision.can_mark_attendance else (0, 0, 255),
+                2,
+            )
             cv2.imshow("Face Recognition", face_frame)
             cv2.imshow("Footwear Presence", shoe_view)
             if (cv2.waitKey(1) & 0xFF) == 27:

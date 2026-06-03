@@ -14,6 +14,10 @@ data/processed/private_face_validation*.csv
 data/processed/public_face_benchmark_latest*.csv
 data/processed/public_face_benchmark_smoke*.csv
 data/processed/attendance_exports/
+data/processed/footwear_eval_latest.csv
+data/processed/footwear_eval_latest/
+data/footwear_yolo/images/
+data/footwear_yolo/labels/
 runs/
 
 tmp_test.pt

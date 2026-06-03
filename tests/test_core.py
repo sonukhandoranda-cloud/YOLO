@@ -14,6 +14,8 @@ from src.database.db import (
 )
 from src.face.matcher import find_best_match
 from src.face.index import FaceIndex
+from src.footwear.detector import Detection
+from src.fusion.footwear_policy import FootwearPolicy
 from src.fusion.decision import IdentityVoteWindow
 
 
@@ -57,8 +59,16 @@ class CoreFlowTest(unittest.TestCase):
                         session_id=session_id,
                         face_score=1.0,
                         presence_score=0.8,
+                        presence_label="sandal",
+                        decision_status="present_with_flag",
                     )
                 )
+                row = conn.execute(
+                    "SELECT presence_label, decision_status FROM attendance_records WHERE student_id = ?",
+                    (student_id,),
+                ).fetchone()
+                self.assertEqual(row["presence_label"], "sandal")
+                self.assertEqual(row["decision_status"], "present_with_flag")
                 self.assertFalse(
                     mark_attendance(
                         conn,
@@ -107,6 +117,21 @@ class CoreFlowTest(unittest.TestCase):
                 self.assertIsNone(match)
             finally:
                 conn.close()
+
+    def test_footwear_policy(self) -> None:
+        policy = FootwearPolicy()
+
+        shoe = policy.decide([Detection("shoe", 0.9, (0, 0, 1, 1))])
+        self.assertEqual(shoe.status, "present")
+        self.assertTrue(shoe.can_mark_attendance)
+
+        sandal = policy.decide([Detection("sandal", 0.8, (0, 0, 1, 1))])
+        self.assertEqual(sandal.status, "present_with_flag")
+        self.assertTrue(sandal.can_mark_attendance)
+
+        slipper = policy.decide([Detection("slipper", 0.7, (0, 0, 1, 1))])
+        self.assertEqual(slipper.status, "absent")
+        self.assertFalse(slipper.can_mark_attendance)
 
 
 if __name__ == "__main__":

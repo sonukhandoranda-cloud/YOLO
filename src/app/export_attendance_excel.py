@@ -19,6 +19,7 @@ HEADERS = [
     "Branch",
     "Batch",
     "Status",
+    "Footwear Label",
     "Face Score",
     "Presence Score",
     "Timestamp",
@@ -35,19 +36,19 @@ def autosize_columns(sheet) -> None:
         sheet.column_dimensions[get_column_letter(column)].width = min(max_length + 2, 40)
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Export attendance records to an Excel sheet.")
-    parser.add_argument("--db", default="data/attendance/attendance.sqlite3")
-    parser.add_argument("--date", default=date.today().isoformat(), help="Attendance date in YYYY-MM-DD format.")
-    parser.add_argument("--session", help="Optional session name filter.")
-    parser.add_argument("--output-dir", default="data/processed/attendance_exports")
-    args = parser.parse_args()
-
-    init_db(args.db)
-    output_dir = Path(args.output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    safe_session = args.session.replace(" ", "_") if args.session else "all_sessions"
-    output_path = output_dir / f"attendance_{args.date}_{safe_session}.xlsx"
+def export_attendance_excel(
+    *,
+    db: str = "data/attendance/attendance.sqlite3",
+    report_date: str | None = None,
+    session: str | None = None,
+    output_dir: str = "data/processed/attendance_exports",
+) -> Path:
+    report_date = report_date or date.today().isoformat()
+    init_db(db)
+    output_path_dir = Path(output_dir)
+    output_path_dir.mkdir(parents=True, exist_ok=True)
+    safe_session = session.replace(" ", "_") if session else "all_sessions"
+    output_path = output_path_dir / f"attendance_{report_date}_{safe_session}.xlsx"
 
     query = """
         SELECT
@@ -58,6 +59,7 @@ def main() -> None:
             s.branch,
             s.batch,
             r.decision_status,
+            r.presence_label,
             r.face_score,
             r.presence_score,
             r.timestamp
@@ -66,13 +68,13 @@ def main() -> None:
         JOIN attendance_sessions a ON a.session_id = r.session_id
         WHERE a.session_date = ?
     """
-    params: list[str] = [args.date]
-    if args.session:
+    params: list[str] = [report_date]
+    if session:
         query += " AND a.name = ?"
-        params.append(args.session)
+        params.append(session)
     query += " ORDER BY a.name, s.roll_no, r.timestamp"
 
-    conn = connect(args.db)
+    conn = connect(db)
     try:
         rows = conn.execute(query, params).fetchall()
     finally:
@@ -93,6 +95,7 @@ def main() -> None:
                 row["branch"],
                 row["batch"],
                 row["decision_status"],
+                row["presence_label"],
                 round(float(row["face_score"]), 4),
                 round(float(row["presence_score"]), 4),
                 row["timestamp"],
@@ -108,8 +111,25 @@ def main() -> None:
     sheet.freeze_panes = "A2"
     autosize_columns(sheet)
     workbook.save(output_path)
-
     print(f"Exported {len(rows)} attendance records")
+    return output_path
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Export attendance records to an Excel sheet.")
+    parser.add_argument("--db", default="data/attendance/attendance.sqlite3")
+    parser.add_argument("--date", default=date.today().isoformat(), help="Attendance date in YYYY-MM-DD format.")
+    parser.add_argument("--session", help="Optional session name filter.")
+    parser.add_argument("--output-dir", default="data/processed/attendance_exports")
+    args = parser.parse_args()
+
+    output_path = export_attendance_excel(
+        db=args.db,
+        report_date=args.date,
+        session=args.session,
+        output_dir=args.output_dir,
+    )
+
     print(f"Excel file: {output_path}")
 
 

@@ -12,6 +12,11 @@ footwear:
   camera_index: 1
   model_path: models/footwear/shoe_detect_best.pt
   confidence_threshold: 0.50
+  allowed_labels:
+    - shoe
+    - footwear
+  flagged_labels:
+    - sandal
 
 attendance:
   duplicate_cooldown_minutes: 30

@@ -7,6 +7,7 @@ import cv2
 
 from src.database.db import add_face_embedding, connect, init_db, upsert_student
 from src.face.engine import create_face_embedder
+from src.face.index import FaceIndex
 
 
 def read_image_or_camera(image_path: str | None, camera_index: int) -> tuple[object, str | None]:
@@ -53,6 +54,9 @@ def main() -> None:
     parser.add_argument("--image", help="Path to enrollment image. If omitted, webcam capture is used.")
     parser.add_argument("--camera", type=int, default=0)
     parser.add_argument("--db", default="data/attendance/attendance.sqlite3")
+    parser.add_argument("--duplicate-threshold", type=float, default=0.41)
+    parser.add_argument("--duplicate-min-margin", type=float, default=0.04)
+    parser.add_argument("--force", action="store_true", help="Allow saving even if this face already matches an enrolled person.")
     args = parser.parse_args()
 
     init_db(args.db)
@@ -64,6 +68,17 @@ def main() -> None:
 
     conn = connect(args.db)
     try:
+        face_index = FaceIndex.load(conn)
+        existing_match = face_index.find_best(face.embedding, args.duplicate_threshold, args.duplicate_min_margin)
+        if existing_match is not None and not args.force:
+            print(
+                "Already enrolled: "
+                f"{existing_match.roll_no} - {existing_match.name} "
+                f"(match score {existing_match.score:.2f}). "
+                "Enrollment was not saved."
+            )
+            return
+
         student_id = upsert_student(
             conn,
             roll_no=args.roll_no,

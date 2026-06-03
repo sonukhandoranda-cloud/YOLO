@@ -1,0 +1,9 @@
+path: data/footwear_yolo
+train: images/train
+val: images/val
+test: images/test
+
+names:
+  0: shoe
+  1: sandal
+  2: other_footwear

@@ -25,6 +25,7 @@ def main() -> None:
                 a.name AS session_name,
                 r.face_score,
                 r.presence_score,
+                r.presence_label,
                 r.decision_status
             FROM attendance_records r
             JOIN students s ON s.student_id = r.student_id
@@ -43,7 +44,8 @@ def main() -> None:
         print(
             f"{row['timestamp']} | {row['session_name']} | "
             f"{row['roll_no']} | {row['name']} | {row['branch']} | {row['batch']} | "
-            f"face={row['face_score']:.2f} | presence={row['presence_score']:.2f} | "
+            f"face={row['face_score']:.2f} | footwear={row['presence_label']} | "
+            f"presence={row['presence_score']:.2f} | "
             f"{row['decision_status']}"
         )
 

@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS attendance_records (
     timestamp TEXT NOT NULL,
     face_score REAL NOT NULL,
     presence_score REAL NOT NULL,
+    presence_label TEXT NOT NULL DEFAULT '',
     decision_status TEXT NOT NULL,
     FOREIGN KEY (student_id) REFERENCES students(student_id),
     FOREIGN KEY (session_id) REFERENCES attendance_sessions(session_id),
@@ -80,9 +81,16 @@ def init_db(db_path: str | Path) -> None:
     conn = connect(db_path)
     try:
         conn.executescript(SCHEMA)
+        _ensure_column(conn, "attendance_records", "presence_label", "TEXT NOT NULL DEFAULT ''")
         conn.commit()
     finally:
         conn.close()
+
+
+def _ensure_column(conn: sqlite3.Connection, table: str, column: str, definition: str) -> None:
+    columns = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})")}
+    if column not in columns:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
 
 
 def upsert_student(
@@ -190,13 +198,15 @@ def mark_attendance(
     session_id: int,
     face_score: float,
     presence_score: float,
+    presence_label: str = "",
+    decision_status: str = "present",
 ) -> bool:
     try:
         conn.execute(
             """
             INSERT INTO attendance_records
-                (student_id, session_id, timestamp, face_score, presence_score, decision_status)
-            VALUES (?, ?, ?, ?, ?, 'present')
+                (student_id, session_id, timestamp, face_score, presence_score, presence_label, decision_status)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 student_id,
@@ -204,6 +214,8 @@ def mark_attendance(
                 datetime.now().isoformat(timespec="seconds"),
                 float(face_score),
                 float(presence_score),
+                presence_label,
+                decision_status,
             ),
         )
         return True

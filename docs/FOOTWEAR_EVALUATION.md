@@ -64,3 +64,23 @@ Before Raspberry Pi deployment, the next footwear step should be:
 2. include sneakers, sandals, slippers, formal shoes, and partial occlusion,
 3. run this same evaluation script,
 4. decide whether to fine-tune YOLO on a custom Roboflow dataset.
+
+## YOLO Training Scaffold
+
+Dataset structure can be created with:
+
+```bash
+python scripts/prepare_footwear_dataset.py
+```
+
+Validate the dataset before training:
+
+```bash
+python scripts/validate_yolo_dataset.py
+```
+
+Train after labels are ready:
+
+```bash
+python scripts/train_footwear_yolo.py --data data/footwear_yolo/data.yaml --model yolo11n.pt --epochs 50 --imgsz 640
+```
