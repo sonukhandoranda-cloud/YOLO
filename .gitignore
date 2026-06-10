@@ -18,6 +18,8 @@ data/processed/footwear_eval_latest.csv
 data/processed/footwear_eval_latest/
 data/footwear_yolo/images/
 data/footwear_yolo/labels/
+data/footwear_yolo_pseudo/
 runs/
 
 tmp_test.pt
+yolo11n.pt

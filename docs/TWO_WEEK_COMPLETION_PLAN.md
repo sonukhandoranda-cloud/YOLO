@@ -4,6 +4,12 @@
 
 Complete the PC software side this week, then use the next week for Raspberry Pi deployment and hardware testing.
 
+Before hardware arrives, run:
+
+```bash
+python scripts/software_readiness_check.py
+```
+
 ## Current Status
 
 Face side:

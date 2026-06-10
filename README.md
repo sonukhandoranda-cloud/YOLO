@@ -21,7 +21,7 @@ This repository currently contains the initial senior-provided resources:
 | `models/footwear/shoe_detect_best.pt` | Recovered usable YOLO shoe model | Working baseline |
 | `shoe_detect_best.pt/` | Original extracted checkpoint resource | Preserved |
 
-The repository now has a first PC prototype structure. The current face recognition engine is a lightweight OpenCV baseline for wiring the system. For the final accuracy target, replace it with a stronger ArcFace or InsightFace-style embedding model.
+The repository now has a working PC prototype structure. The current face recognition engine uses OpenCV YuNet for face detection and OpenCV SFace for face embeddings. The next major model task is improving the YOLO footwear detector.
 
 ## Problem Statement
 
@@ -410,6 +410,12 @@ Quick system check:
 
 ```bash
 python -m src.app.doctor
+```
+
+Full PC software readiness check:
+
+```bash
+python scripts/software_readiness_check.py
 ```
 
 Initialize the database:
