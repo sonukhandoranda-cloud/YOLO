@@ -49,6 +49,26 @@ ONNX second
 TFLite if needed
 ```
 
+Current tested baseline export:
+
+```bash
+python scripts/export_footwear_model_for_pi.py --model models/footwear/shoe_detect_best.pt --format ncnn --imgsz 416
+```
+
+This creates:
+
+```text
+models/footwear/shoe_detect_best_ncnn_model
+```
+
+The exported folder is generated output and is ignored by Git. Recreate it from the command above or copy it manually to the Raspberry Pi when needed.
+
+Test the exported model on PC:
+
+```bash
+python -m src.footwear.run_detector --model models/footwear/shoe_detect_best_ncnn_model --source data/raw/footwear_samples/500px-Reebok_Royal_Glide_Ripple_Clip_shoe.jpg --conf 0.25 --no-display
+```
+
 ## Raspberry Pi Checklist
 
 1. Clone repository.

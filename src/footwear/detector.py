@@ -14,17 +14,25 @@ class Detection:
     bbox: tuple[int, int, int, int]
 
 
+def resolve_model_path(model_path: str | Path) -> Path:
+    path = Path(model_path)
+    if path.is_file():
+        return path
+    if path.is_dir() and (path / "model.ncnn.param").exists() and (path / "model.ncnn.bin").exists():
+        return path
+    raise FileNotFoundError(
+        f"YOLO model not found or unsupported: {path}. "
+        "Use a .pt model file on PC, or an exported NCNN model folder containing "
+        "model.ncnn.param and model.ncnn.bin for Raspberry Pi."
+    )
+
+
 class FootwearDetector:
     def __init__(self, model_path: str | Path, confidence_threshold: float = 0.5) -> None:
         from ultralytics import YOLO
 
-        self.model_path = Path(model_path)
-        if not self.model_path.exists() or self.model_path.is_dir():
-            raise FileNotFoundError(
-                f"YOLO model file not found: {self.model_path}. "
-                "Run scripts/recover_extracted_checkpoint.py if you only have an extracted checkpoint folder."
-            )
-        self.model = YOLO(str(self.model_path))
+        self.model_path = resolve_model_path(model_path)
+        self.model = YOLO(str(self.model_path), task="detect")
         self.confidence_threshold = confidence_threshold
 
     def detect(self, frame_bgr: np.ndarray) -> list[Detection]:

@@ -20,6 +20,7 @@ data/footwear_yolo/images/
 data/footwear_yolo/labels/
 data/footwear_yolo_pseudo/
 runs/
+models/footwear/*_ncnn_model/
 
 tmp_test.pt
 yolo11n.pt

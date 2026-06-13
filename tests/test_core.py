@@ -14,7 +14,7 @@ from src.database.db import (
 )
 from src.face.matcher import find_best_match
 from src.face.index import FaceIndex
-from src.footwear.detector import Detection
+from src.footwear.detector import Detection, resolve_model_path
 from src.fusion.footwear_policy import FootwearPolicy
 from src.fusion.decision import IdentityVoteWindow
 
@@ -132,6 +132,24 @@ class CoreFlowTest(unittest.TestCase):
         slipper = policy.decide([Detection("slipper", 0.7, (0, 0, 1, 1))])
         self.assertEqual(slipper.status, "absent")
         self.assertFalse(slipper.can_mark_attendance)
+
+    def test_footwear_model_path_validation_accepts_pt_and_ncnn(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            root = Path(tmp_dir)
+            pt_model = root / "model.pt"
+            pt_model.write_bytes(b"placeholder")
+            self.assertEqual(resolve_model_path(pt_model), pt_model)
+
+            ncnn_model = root / "model_ncnn"
+            ncnn_model.mkdir()
+            (ncnn_model / "model.ncnn.param").write_text("placeholder", encoding="utf-8")
+            (ncnn_model / "model.ncnn.bin").write_bytes(b"placeholder")
+            self.assertEqual(resolve_model_path(ncnn_model), ncnn_model)
+
+            bad_dir = root / "bad_model"
+            bad_dir.mkdir()
+            with self.assertRaises(FileNotFoundError):
+                resolve_model_path(bad_dir)
 
 
 if __name__ == "__main__":
