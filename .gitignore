@@ -19,6 +19,9 @@ data/processed/footwear_eval_latest/
 data/footwear_yolo/images/
 data/footwear_yolo/labels/
 data/footwear_yolo_pseudo/
+data/footwear_yolo_public/
+data/footwear_yolo_demo/
+data/raw/footwear_classes/
 runs/
 models/footwear/*_ncnn_model/
 

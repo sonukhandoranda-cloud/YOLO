@@ -8,6 +8,7 @@ from pathlib import Path
 
 import cv2
 
+from src.cameras.threaded import open_capture
 from src.database.db import init_db
 
 
@@ -21,7 +22,7 @@ def check_import(module_name: str) -> tuple[bool, str]:
 
 
 def check_camera(index: int) -> tuple[bool, str]:
-    cap = cv2.VideoCapture(index)
+    cap = open_capture(index)
     try:
         if not cap.isOpened():
             return False, "not available"
@@ -47,14 +48,12 @@ def check_database(path: Path) -> tuple[bool, str]:
 
 
 def check_shoe_model(path: Path) -> tuple[bool, str]:
-    if not path.exists():
-        return False, f"missing: {path}"
-    if path.is_dir():
-        return False, "path is a folder, not a .pt file"
     try:
+        from src.footwear.detector import resolve_model_path
         from ultralytics import YOLO
 
-        model = YOLO(str(path))
+        model_path = resolve_model_path(path)
+        model = YOLO(str(model_path), task="detect")
         return True, f"loaded classes: {model.names}"
     except Exception as exc:
         return False, str(exc)
@@ -82,7 +81,7 @@ def print_result(name: str, ok: bool, detail: str) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Check whether the attendance project is ready to run.")
     parser.add_argument("--db", default="data/attendance/attendance.sqlite3")
-    parser.add_argument("--shoe-model", default="models/footwear/shoe_detect_best.pt")
+    parser.add_argument("--shoe-model", default="models/footwear/footwear_policy_yolo11n.pt")
     parser.add_argument("--check-cameras", type=int, default=2, help="Number of camera indexes to check from 0.")
     args = parser.parse_args()
 

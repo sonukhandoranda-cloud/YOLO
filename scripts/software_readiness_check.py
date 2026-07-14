@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import subprocess
 import sys
+from pathlib import Path
 
 
 CHECKS = [
@@ -30,7 +31,9 @@ def main() -> None:
         raise SystemExit(1)
 
     print("READY FOR PC SOFTWARE CHECKPOINT")
-    print("Note: footwear YOLO dataset may still be EMPTY until labeled images are added.")
+    if Path("models/footwear/footwear_policy_yolo11n.pt").exists():
+        print("Footwear policy model ready: models/footwear/footwear_policy_yolo11n.pt")
+    print("Note: data/footwear_yolo is the manual-label dataset slot and may be EMPTY until real Pi-angle images are added.")
 
 
 if __name__ == "__main__":

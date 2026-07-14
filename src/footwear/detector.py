@@ -28,15 +28,28 @@ def resolve_model_path(model_path: str | Path) -> Path:
 
 
 class FootwearDetector:
-    def __init__(self, model_path: str | Path, confidence_threshold: float = 0.5) -> None:
+    def __init__(
+        self,
+        model_path: str | Path,
+        confidence_threshold: float = 0.5,
+        fallback_model_path: str | Path | None = None,
+    ) -> None:
         from ultralytics import YOLO
 
         self.model_path = resolve_model_path(model_path)
         self.model = YOLO(str(self.model_path), task="detect")
+        self.fallback_model_path = resolve_model_path(fallback_model_path) if fallback_model_path else None
+        self.fallback_model = YOLO(str(self.fallback_model_path), task="detect") if self.fallback_model_path else None
         self.confidence_threshold = confidence_threshold
 
     def detect(self, frame_bgr: np.ndarray) -> list[Detection]:
-        results = self.model.predict(frame_bgr, conf=self.confidence_threshold, verbose=False)
+        detections = self._predict(self.model, frame_bgr)
+        if detections or self.fallback_model is None:
+            return detections
+        return self._predict(self.fallback_model, frame_bgr)
+
+    def _predict(self, model, frame_bgr: np.ndarray) -> list[Detection]:
+        results = model.predict(frame_bgr, conf=self.confidence_threshold, verbose=False)
         if not results:
             return []
         result = results[0]

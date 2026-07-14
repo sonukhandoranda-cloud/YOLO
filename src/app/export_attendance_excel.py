@@ -8,7 +8,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
-from src.database.db import connect, init_db
+from src.database.db import connect, effective_attendance_status, init_db
 
 
 HEADERS = [
@@ -86,6 +86,11 @@ def export_attendance_excel(
     sheet.append(HEADERS)
 
     for row in rows:
+        status = effective_attendance_status(
+            row["decision_status"],
+            row["presence_label"],
+            float(row["presence_score"]),
+        )
         sheet.append(
             [
                 row["session_date"],
@@ -94,7 +99,7 @@ def export_attendance_excel(
                 row["name"],
                 row["branch"],
                 row["batch"],
-                row["decision_status"],
+                status,
                 row["presence_label"],
                 round(float(row["face_score"]), 4),
                 round(float(row["presence_score"]), 4),

@@ -18,10 +18,11 @@ This repository currently contains the initial senior-provided resources:
 | `src/app/enroll_student.py` | Enrolls a student face into SQLite | Working baseline |
 | `src/app/run_attendance.py` | Two-camera attendance prototype | Working baseline |
 | `src/footwear/run_detector.py` | Tests YOLO footwear detection | Working baseline |
+| `models/footwear/footwear_policy_yolo11n.pt` | 3-class footwear policy model: shoe, sandal, other_footwear | Working demo model |
 | `models/footwear/shoe_detect_best.pt` | Recovered usable YOLO shoe model | Working baseline |
 | `shoe_detect_best.pt/` | Original extracted checkpoint resource | Preserved |
 
-The repository now has a working PC prototype structure. The current face recognition engine uses OpenCV YuNet for face detection and OpenCV SFace for face embeddings. The next major model task is improving the YOLO footwear detector.
+The repository now has a working PC prototype structure. The current face recognition engine uses OpenCV YuNet for face detection and OpenCV SFace for face embeddings. The footwear path now has a 3-class YOLO demo model for the required attendance policy.
 
 ## Problem Statement
 
@@ -442,6 +443,12 @@ Test face recognition and mark face-only demo attendance from PC webcam:
 python -m src.app.test_face_camera --camera 0
 ```
 
+Preview laptop camera and USB webcam side by side:
+
+```bash
+python scripts/check_two_cameras.py --face-camera 0 --footwear-camera 1
+```
+
 Show saved attendance:
 
 ```bash
@@ -486,7 +493,7 @@ python scripts/evaluate_public_face_benchmark.py --enrolled 1500 --unknown 100 -
 
 The live face runners use an in-memory face index for fast matching after startup. SQLite remains the source of truth, but video-frame matching does not repeatedly parse the database.
 
-Evaluate footwear model on sample images:
+Evaluate the original one-class footwear baseline:
 
 ```bash
 python scripts/evaluate_footwear_images.py --images data/raw/footwear_samples --model models/footwear/shoe_detect_best.pt --conf 0.50
@@ -495,16 +502,28 @@ python scripts/evaluate_footwear_images.py --images data/raw/footwear_samples --
 Test footwear detection:
 
 ```bash
-python -m src.footwear.run_detector --model models/footwear/shoe_detect_best.pt --source 0
+python -m src.footwear.run_detector --model models/footwear/footwear_policy_yolo11n.pt --source 0
+```
+
+Headless footwear test on a sample image:
+
+```bash
+python -m src.footwear.run_detector --model models/footwear/footwear_policy_yolo11n.pt --source data/raw/footwear_samples/500px-Sandal__leather_-_Museo_Egizio__Turin_S_8638_p01.jpg --conf 0.25 --no-display
 ```
 
 Run the two-camera attendance prototype:
 
 ```bash
-python -m src.app.run_attendance --face-camera 0 --footwear-camera 1
+python -m src.app.run_attendance --face-camera 0 --footwear-camera 1 --session industry-demo --show-latency --max-footwear-age-ms 1000
 ```
 
-If only one camera is connected, test enrollment and footwear detection separately first.
+Use the camera checker first. If the laptop camera and USB webcam are swapped, reverse the indexes:
+
+```bash
+python -m src.app.run_attendance --face-camera 1 --footwear-camera 0 --session industry-demo --show-latency --max-footwear-age-ms 1000
+```
+
+The two-camera runner is meant to stay open continuously. It uses threaded latest-frame capture, asynchronous footwear inference, and footwear decision smoothing so people can stand in front of both cameras, get marked, and move on.
 
 Current footwear attendance policy:
 

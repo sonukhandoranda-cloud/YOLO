@@ -177,16 +177,23 @@ def recently_marked(
     *,
     student_id: int,
     cooldown_minutes: int,
+    session_id: int | None = None,
 ) -> bool:
     since = datetime.now() - timedelta(minutes=cooldown_minutes)
+    session_filter = "AND session_id = ?" if session_id is not None else ""
+    params: tuple[object, ...] = (
+        (student_id, since.isoformat(timespec="seconds"), session_id)
+        if session_id is not None
+        else (student_id, since.isoformat(timespec="seconds"))
+    )
     row = conn.execute(
-        """
+        f"""
         SELECT 1
         FROM attendance_records
-        WHERE student_id = ? AND timestamp >= ?
+        WHERE student_id = ? AND timestamp >= ? {session_filter}
         LIMIT 1
         """,
-        (student_id, since.isoformat(timespec="seconds")),
+        params,
     ).fetchone()
     return row is not None
 
@@ -201,6 +208,8 @@ def mark_attendance(
     presence_label: str = "",
     decision_status: str = "present",
 ) -> bool:
+    if decision_status == "present" and (not presence_label or presence_score <= 0):
+        decision_status = "face_only_no_footwear"
     try:
         conn.execute(
             """
@@ -221,3 +230,9 @@ def mark_attendance(
         return True
     except sqlite3.IntegrityError:
         return False
+
+
+def effective_attendance_status(decision_status: str, presence_label: str, presence_score: float) -> str:
+    if decision_status in {"present", "present_with_flag"} and (not presence_label or presence_score <= 0):
+        return "face_only_no_footwear"
+    return decision_status

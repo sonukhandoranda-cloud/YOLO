@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 
-from src.database.db import connect, init_db
+from src.database.db import connect, effective_attendance_status, init_db
 
 
 def main() -> None:
@@ -41,12 +41,17 @@ def main() -> None:
         return
 
     for row in rows:
+        status = effective_attendance_status(
+            row["decision_status"],
+            row["presence_label"],
+            float(row["presence_score"]),
+        )
         print(
             f"{row['timestamp']} | {row['session_name']} | "
             f"{row['roll_no']} | {row['name']} | {row['branch']} | {row['batch']} | "
             f"face={row['face_score']:.2f} | footwear={row['presence_label']} | "
             f"presence={row['presence_score']:.2f} | "
-            f"{row['decision_status']}"
+            f"{status}"
         )
 
 

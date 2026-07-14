@@ -62,6 +62,7 @@ def main() -> None:
                     conn,
                     student_id=match.student_id,
                     cooldown_minutes=args.cooldown_minutes,
+                    session_id=session_id,
                 ):
                     last_status = f"ALREADY MARKED: {match.roll_no} {match.name}"
                 else:
@@ -71,6 +72,7 @@ def main() -> None:
                         session_id=session_id,
                         face_score=match.score,
                         presence_score=0.0,
+                        decision_status="face_only_no_footwear",
                     )
                     conn.commit()
                     if inserted:

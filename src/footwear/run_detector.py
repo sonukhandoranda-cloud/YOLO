@@ -11,16 +11,17 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Test footwear detection on image, video, or webcam.")
     parser.add_argument(
         "--model",
-        default="models/footwear/shoe_detect_best.pt",
+        default="models/footwear/footwear_policy_yolo11n.pt",
         help="YOLO .pt model file or exported NCNN model folder.",
     )
+    parser.add_argument("--fallback-model", default="models/footwear/shoe_detect_best.pt")
     parser.add_argument("--source", default="0", help="Image/video path or camera index.")
-    parser.add_argument("--conf", type=float, default=0.5)
+    parser.add_argument("--conf", type=float, default=0.20)
     parser.add_argument("--no-display", action="store_true", help="Print detections without opening an OpenCV window.")
     parser.add_argument("--max-frames", type=int, default=0, help="Stop after this many video/camera frames. 0 means no limit.")
     args = parser.parse_args()
 
-    detector = FootwearDetector(args.model, args.conf)
+    detector = FootwearDetector(args.model, args.conf, fallback_model_path=args.fallback_model)
     source = int(args.source) if args.source.isdigit() else args.source
 
     if isinstance(source, str):

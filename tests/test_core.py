@@ -7,15 +7,17 @@ import numpy as np
 from src.database.db import (
     add_face_embedding,
     connect,
+    effective_attendance_status,
     get_or_create_session,
     init_db,
     mark_attendance,
+    recently_marked,
     upsert_student,
 )
 from src.face.matcher import find_best_match
 from src.face.index import FaceIndex
 from src.footwear.detector import Detection, resolve_model_path
-from src.fusion.footwear_policy import FootwearPolicy
+from src.fusion.footwear_policy import FootwearDecisionWindow, FootwearPolicy
 from src.fusion.decision import IdentityVoteWindow
 
 
@@ -132,6 +134,74 @@ class CoreFlowTest(unittest.TestCase):
         slipper = policy.decide([Detection("slipper", 0.7, (0, 0, 1, 1))])
         self.assertEqual(slipper.status, "absent")
         self.assertFalse(slipper.can_mark_attendance)
+
+    def test_footwear_decision_window_holds_recent_valid_detection(self) -> None:
+        policy = FootwearPolicy()
+        window = FootwearDecisionWindow(window_size=4, required_votes=2, hold_ms=1000)
+
+        first = window.add(policy.decide([Detection("shoe", 0.4, (0, 0, 1, 1))]))
+        self.assertEqual(first.status, "present")
+
+        stable = window.add(policy.decide([Detection("shoe", 0.45, (0, 0, 1, 1))]))
+        self.assertEqual(stable.status, "present")
+        self.assertEqual(stable.label, "shoe")
+
+        held = window.add(policy.decide([]))
+        self.assertEqual(held.status, "present")
+        self.assertEqual(held.label, "shoe")
+
+    def test_missing_footwear_is_not_reported_as_clean_present(self) -> None:
+        self.assertEqual(
+            effective_attendance_status("present", "", 0.0),
+            "face_only_no_footwear",
+        )
+        self.assertEqual(
+            effective_attendance_status("present", "shoe", 0.45),
+            "present",
+        )
+
+    def test_duplicate_cooldown_can_be_scoped_to_session(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            db_path = Path(tmp_dir) / "attendance.sqlite3"
+            init_db(db_path)
+            conn = connect(db_path)
+            try:
+                student_id = upsert_student(
+                    conn,
+                    roll_no="101",
+                    name="Test Student",
+                    branch="CSE",
+                    batch="2026",
+                )
+                face_session = get_or_create_session(conn, "face-demo")
+                real_session = get_or_create_session(conn, "default")
+                self.assertTrue(
+                    mark_attendance(
+                        conn,
+                        student_id=student_id,
+                        session_id=face_session,
+                        face_score=0.8,
+                        presence_score=0.0,
+                    )
+                )
+                self.assertTrue(
+                    recently_marked(
+                        conn,
+                        student_id=student_id,
+                        cooldown_minutes=30,
+                        session_id=face_session,
+                    )
+                )
+                self.assertFalse(
+                    recently_marked(
+                        conn,
+                        student_id=student_id,
+                        cooldown_minutes=30,
+                        session_id=real_session,
+                    )
+                )
+            finally:
+                conn.close()
 
     def test_footwear_model_path_validation_accepts_pt_and_ncnn(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
